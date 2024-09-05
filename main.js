@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
      
     itemsList=[];
 
-    Promise.all([d3.csv('//alexlabenz.github.io/VesaliusFabricaMap/data/test.csv'),d3.csv('//alexlabenz.github.io/VesaliusFabricaMap/data/coords_map.csv')])
+    Promise.all([d3.csv('//VesaliusFabricaMap/data/test.csv'),d3.csv('//VesaliusFabricaMap/data/coords_map.csv')])
         .then(function (values) {
             data=values[0];
             coords=values[1];
@@ -120,7 +120,7 @@ function drawChart(){
         .projection(projection);
 
 
-    d3.json('//alexlabenz.github.io/VesaliusFabricaMap/data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
+    d3.json('//VesaliusFabricaMap/data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
         svg.selectAll('g')
             .data(json.features)
             .join("path")
