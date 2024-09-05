@@ -120,7 +120,7 @@ function drawChart(){
         .projection(projection);
 
 
-    d3.json('//data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
+    d3.json('../data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
         svg.selectAll('g')
             .data(json.features)
             .join("path")
