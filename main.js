@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
      
     itemsList=[];
 
-    Promise.all([d3.csv('/data/test.csv'),d3.csv('/data/coords_map.csv')])
+    Promise.all([d3.csv('../data/test.csv'),d3.csv('../data/coords_map.csv')])
         .then(function (values) {
             data=values[0];
             coords=values[1];
