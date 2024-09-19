@@ -208,12 +208,12 @@ function drawChart(){
 
     //append labels for legend
     d3.select('#legendarySvg').append('text')
-        .attr('x',3)
+        .attr('x',5)
         .attr('y',25)
         .text('1543');
     
     d3.select('#legendarySvg').append('text')
-        .attr('x',width-41)
+        .attr('x',width-43)
         .attr('y',25)
         .text('1800');
 }
