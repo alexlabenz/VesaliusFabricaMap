@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
      
     itemsList=[];
 
-    Promise.all([d3.csv('../data/test.csv'),d3.csv('../data/coords_map.csv')])
+    Promise.all([d3.csv('../VesaliusFabricaMap/data/test.csv'),d3.csv('../VesaliusFabricaMap/data/coords_map.csv')])
         .then(function (values) {
             data=values[0];
             coords=values[1];
@@ -65,8 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log(coords);
             console.log(dataTest);
 
-
-
             drawChart();
             
 
@@ -80,25 +78,28 @@ document.addEventListener('DOMContentLoaded', function () {
  }
 
 function drawChart(){
-    const svg=d3.select('#testSvg')
-        .style('background','slateblue')
-    const width = +svg.style('width').replace('px','');
-    const height = +svg.style('height').replace('px','');
-    const margin = { top:50, bottom: 50, right: 50, left: 50 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
+    const scaleFactor=3; //scale factor for map projection
 
-    var tip=d3.select('#my_dataviz')
+    var svg=d3.select('#testSvg')
+        .style('background','slateblue')
+    var width = +svg.style('width').replace('px','');
+    var height = +svg.style('height').replace('px','');
+    // const margin = { top:50, bottom: 50, right: 50, left: 50 };
+    // var innerWidth = width - margin.left - margin.right;
+    // var innerHeight = height - margin.top - margin.bottom;
+
+    var legend=d3.select('#legendarySvg')
+    var legendWidth=+legend.style('width').replace('px','');
+
+    var tip=d3.select('#mapdiv')
         .append('div')
         .attr('class', 'tooltip')
         .style('opacity',0)
         .style('left','0px')
         .style('top','0px');
 
-    const yearLabel = tip.append('div').attr('class', 'ps-2')
-        .text('no item selected');
-    const cityLabel=tip.append('div').attr('class', 'ps-2')
-        .text('_');
+    const yearLabel = tip.append('div').text('no item selected');
+    const cityLabel=tip.append('div').text('_');
 
     
 
@@ -111,26 +112,33 @@ function drawChart(){
     // svg.append('svg');
 
     var projection=d3.geoMercator()
-        .scale(Math.min(innerWidth,innerHeight)*2.7)
+        // .scale(Math.min(innerWidth,innerHeight)*2.7)
         .center([7.588576,47.559601])
-        .translate([innerWidth/1.5,innerHeight/1.5])
+        // .translate([innerWidth/1.5,innerHeight/1.5])
+        .scale(Math.min(width,height)*scaleFactor)
+        .translate([width/2,height/2])
+
 
 
     var path=d3.geoPath()
         .projection(projection);
 
 
-    d3.json('../data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
-        svg.selectAll('g')
+    d3.json('../VesaliusFabricaMap/data/world.geo.json').then(function(json) { //json from https://geojson-maps.ash.ms/
+        svg.selectAll('.map')
             .data(json.features)
             .join("path")
+                .attr('class','map')
                 .attr("d", path)
                 .style('stroke','tan')
                 .style('fill','ivory');
-        svg.selectAll('g')
+        svg.selectAll('.city')
             .data(dataTest)
-            .enter()
-            .append('circle')
+            // .enter()
+            // .append('circle')
+            .join('circle')
+            .attr('class','city')
+            .attr('id', d => d.City)
             .attr('cx', d => projection([d.Longitude, d.Latitude])[0])
             .attr('cy', d => projection([d.Longitude, d.Latitude])[1])
             // .attr('cx', d => projection([d.find(row => d.City==row.City).Longitude,coords.find(row => d.City==row.City).Latitude])[0])
@@ -140,44 +148,84 @@ function drawChart(){
 
 
             .on('mouseover', function(d,i){
-                // console.log('d=',d);
                 console.log('d=',d);
                 console.log(i);
                 var mouseX=d.layerX;
                 var mouseY=d.layerY;
-                // svg.selectAll('circle')
-                //     .style('opacity',.5)
-                // svg.selectAll(`#${i.Title}`)
-                //     .style('stroke-width',4)
-                //     .style('opacity',1)
+                svg.selectAll('.city')
+                    // .style('opacity',.1)
+                    .attr('r','4')
+                svg.selectAll(`#${i.City}`)
+                    // .style('stroke-width',4)
+                    // .style('opacity',1)
+                    .attr('r','6')
+                // console.log(i.Title);
 
                 tip.transition()
                     .duration(0)
                     .style('opacity', 1)
                     .style('left',(mouseX+10)+'px')
                     .style('top',(mouseY-30)+'px')
-                    .style('text','hello')
+                    // .style('text','hello')
                 yearLabel.text(i.Year)
                 cityLabel.text(i.City)
 
             })
             .on('mouseout', function(d,i){
-                // svg.selectAll('circle')
-                //     .style('opacity',1)
-                // svg.selectAll(`#${i.Title}`)
-                //     .style('stroke-width',1)
+                svg.selectAll('.city')
+                    // .style('opacity',1)
+                    .attr('r','5')
+                svg.selectAll(`#${i.City}`)
+                    .style('stroke-width',1)
                 
                 tip.style('opacity',0)
             })
 
-    }); 
+    });
+
+    function resize() {
+        width=parseInt(d3.select('#testSvg').style('width').replace('px',''));
+        height=parseInt(d3.select('#testSvg').style('height').replace('px',''));
+
+        legend=d3.select('#legendarySvg');
+        legendWidth=legend.style('width').replace('px','');
+        
+        projection=d3.geoMercator()
+            .center([7.588576,47.559601])
+            .scale(Math.min(width,height)*scaleFactor)
+            .translate([width/2,height/2]);
+
+        path=d3.geoPath()
+            .projection(projection);
+
+        svg.selectAll('.map')
+            .attr("d", path);
+        svg.selectAll('.city')
+            .attr('cx', d => projection([d.Longitude, d.Latitude])[0])
+            .attr('cy', d => projection([d.Longitude, d.Latitude])[1]);
+
+        // var legSvg=d3.select('#legendarySvg');
+        // legSvg.select('.bar')
+        legend.select('.bar')
+            .attr('width',legendWidth-100);
+        legend.select('.barLbl2')
+            .attr('x',legendWidth-46);
+        
+        console.log("resize complete");
+            
+
+    }
+
+    d3.select(window).on('resize', resize);
+     
 
     function color_year(r){
         return colorYear(r.Year)
     }
 
     //build legend
-    const svgDefs=d3.select('#legendarySvg').append('defs') //gradient implementation from https://www.freshconsulting.com/insights/blog/d3-js-gradients-the-easy-way/
+    // const svgDefs=d3.select('#legendarySvg').append('defs') //gradient implementation from https://www.freshconsulting.com/insights/blog/d3-js-gradients-the-easy-way/
+    const svgDefs=legend.append('defs') //gradient implementation from https://www.freshconsulting.com/insights/blog/d3-js-gradients-the-easy-way/
         .attr('id', 'mainGradient');
         
     var gradient = svgDefs.append("linearGradient") 
@@ -200,20 +248,22 @@ function drawChart(){
         .attr("stop-opacity", 1);
 
     d3.select('#legendarySvg').append('rect')
+        .attr('class','bar')
         .attr('x',50)
-        .attr('y',0)
-        .attr('width',innerWidth)
+        .attr('y',10)
+        .attr('width',legendWidth-100)
         .attr('height',20)
         .style('fill','url(#legendGradient)');
 
     //append labels for legend
     d3.select('#legendarySvg').append('text')
-        .attr('x',0)
-        .attr('y',15)
+        .attr('x',10)
+        .attr('y',25)
         .text('1543');
     
     d3.select('#legendarySvg').append('text')
-        .attr('x',width-38)
-        .attr('y',15)
+        .attr('class','barLbl2')
+        .attr('x',legendWidth-46)
+        .attr('y',25)
         .text('1800');
 }
